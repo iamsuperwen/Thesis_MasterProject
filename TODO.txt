@@ -1,0 +1,85 @@
+# [Thesis_MasterProject]'s TODO List:
+
+$ Big Picture/Structure:
+<Thesis>
+- A. Thesis_MasterProject
+  [1. Unity端]
+    a. Manipulate Virtual Robot  
+	  a-v1. Unity_Offline_mouse: 單純Virtual Robot in Unity (w/out Vive, RV-2A)
+        // 將"tset_20161212" Project整理後上傳GitHub: 
+	    // 1. 加入角度限制; 
+	    // 2. Duplicate 2 virtual Robot(Actual & Target);
+	  
+	  a-v2. Unity_Offline_Vive: Using Vive to control virtual robot (offline) 
+	    // 研究Vive in Unity; 使用Vive Controller控制virtual robot	  
+	
+	b. TCP/IP connection   
+	  b-v0. Unity_TCP: for testing, connect between "Unity(C#) <-> PC(Cpp)"
+	    // 整個架構大概是: "Unity(C#) <-> {PC(Cpp) <-> RV-2A} "
+	    // 確認兩邊socket的部分(Unity & PC); 
+	    // 丟"固定角度值"(Target angle); 傳送cmd設計
+	  
+	  b-v1. Unity_TCP_mouse
+	    // modify "a-v1"
+	  
+	  b-v2. Unity_TCP_Vive
+	    // modify "a-v2"
+	  
+	c. Record Data
+	  // 但前幾版也需要這個功能呀!!! => [solved]. 當作upgrade好了! 
+	  // upgrade同一個檔案(所以名稱相同!)
+	=> Combine a+b+c: 
+	  // Manipulate mode*2 : (mouse) & Vive 
+	  // Connection mode*2 : Offline & TCP(=online)
+	
+	  
+  [2. PC端]
+	  - PC_TCP: 跑在PC上的Cpp, 簡單來說就是個"中繼站"
+	  // 1. 與Unity連線
+	  // 2. 與RV-2A連線	
+	  
+	
+	
+/*--------------------------------------------------	
+- B. Thesis_TabletVR (重現'佳琪'的論文)
+- C. Thesis_TabletAR (重現'德智'的論文)
+- D. Thesis_ARRotate (重現'宸豐'的論文)
+
+==============================
+<Course>
+- E. Course_HCI (Maybe using MS Kinect)
+- F. Course_ComputerVision (...?)
+- G. Course_ARVR (Maybe same as "A. Thesis_MasterProject" haha~)
+--------------------------------------------------*/
+
+============================================================
+============================================================
+$ PARTS(component):
+<Unity端-C#> ..1
+- Angle Limits: 防只亂跳
+- Duplicate 2 virtual Robot(Actual & Target)
+- TCP/IP連線(Socket; DataType;)
+- Vive Controller 使用&按鍵設計
+
+==============================
+<PC端-Cpp> ..2
+- TCP/IP連線(Socket; DataType; Filter?!)
+- 存點: 記錄路徑
+
+==============================
+<其它>  ..3
+- 夾爪CAD還沒畫
+- 實驗設計&規劃
+- 校正
+- 人因統計分析
+
+
+
+
+
+
+
+
+
+
+
