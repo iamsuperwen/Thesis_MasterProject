@@ -3,21 +3,21 @@
 $ Big Picture/Structure:
 <Thesis>
 - A. Thesis_MasterProject
-  [1. Unityºİ]
+  [1. Unityç«¯]
     a. Manipulate Virtual Robot  
-	  a-v1. Unity_Offline_mouse: ³æ¯ÂVirtual Robot in Unity (w/out Vive, RV-2A)
-        // ±N"tset_20161212" Project¾ã²z«á¤W¶ÇGitHub: 
-	    // 1. ¥[¤J¨¤«×­­¨î; 
+	  a-v1. Unity_Offline_mouse: å–®ç´”Virtual Robot in Unity (w/out Vive, RV-2A)
+        // å°‡"tset_20161212" Projectæ•´ç†å¾Œä¸Šå‚³GitHub: 
+	    // 1. åŠ å…¥è§’åº¦é™åˆ¶; 
 	    // 2. Duplicate 2 virtual Robot(Actual & Target);
 	  
 	  a-v2. Unity_Offline_Vive: Using Vive to control virtual robot (offline) 
-	    // ¬ã¨sVive in Unity; ¨Ï¥ÎVive Controller±±¨îvirtual robot	  
+	    // ç ”ç©¶Vive in Unity; ä½¿ç”¨Vive Controlleræ§åˆ¶virtual robot	  
 	
 	b. TCP/IP connection   
 	  b-v0. Unity_TCP: for testing, connect between "Unity(C#) <-> PC(Cpp)"
-	    // ¾ã­Ó¬[ºc¤j·§¬O: "Unity(C#) <-> {PC(Cpp) <-> RV-2A} "
-	    // ½T»{¨âÃäsocketªº³¡¤À(Unity & PC); 
-	    // ¥á"©T©w¨¤«×­È"(Target angle); ¶Ç°ecmd³]­p
+	    // æ•´å€‹æ¶æ§‹å¤§æ¦‚æ˜¯: "Unity(C#) <-> {PC(Cpp) <-> RV-2A} "
+	    // ç¢ºèªå…©é‚Šsocketçš„éƒ¨åˆ†(Unity & PC); 
+	    // ä¸Ÿ"å›ºå®šè§’åº¦å€¼"(Target angle); å‚³é€cmdè¨­è¨ˆ
 	  
 	  b-v1. Unity_TCP_mouse
 	    // modify "a-v1"
@@ -26,24 +26,24 @@ $ Big Picture/Structure:
 	    // modify "a-v2"
 	  
 	c. Record Data
-	  // ¦ı«e´Xª©¤]»İ­n³o­Ó¥\¯à§r!!! => [solved]. ·í§@upgrade¦n¤F! 
-	  // upgrade¦P¤@­ÓÀÉ®×(©Ò¥H¦WºÙ¬Û¦P!)
+	  // ä½†å‰å¹¾ç‰ˆä¹Ÿéœ€è¦é€™å€‹åŠŸèƒ½å‘€!!! => [solved]. ç•¶ä½œupgradeå¥½äº†! 
+	  // upgradeåŒä¸€å€‹æª”æ¡ˆ(æ‰€ä»¥åç¨±ç›¸åŒ!)
 	=> Combine a+b+c: 
 	  // Manipulate mode*2 : (mouse) & Vive 
 	  // Connection mode*2 : Offline & TCP(=online)
 	
 	  
-  [2. PCºİ]
-	  - PC_TCP: ¶]¦bPC¤WªºCpp, Â²³æ¨Ó»¡´N¬O­Ó"¤¤Ä~¯¸"
-	  // 1. »PUnity³s½u
-	  // 2. »PRV-2A³s½u	
+  [2. PCç«¯]
+	  - PC_TCP: è·‘åœ¨PCä¸Šçš„Cpp, ç°¡å–®ä¾†èªªå°±æ˜¯å€‹"ä¸­ç¹¼ç«™"
+	  // 1. èˆ‡Unityé€£ç·š
+	  // 2. èˆ‡RV-2Aé€£ç·š	
 	  
 	
 	
 /*--------------------------------------------------	
-- B. Thesis_TabletVR (­«²{'¨ÎµX'ªº½×¤å)
-- C. Thesis_TabletAR (­«²{'¼w´¼'ªº½×¤å)
-- D. Thesis_ARRotate (­«²{'®fÂ×'ªº½×¤å)
+- B. Thesis_TabletVR (é‡ç¾'ä½³çª'çš„è«–æ–‡)
+- C. Thesis_TabletAR (é‡ç¾'å¾·æ™º'çš„è«–æ–‡)
+- D. Thesis_ARRotate (é‡ç¾'å®¸è±'çš„è«–æ–‡)
 
 ==============================
 <Course>
@@ -55,31 +55,20 @@ $ Big Picture/Structure:
 ============================================================
 ============================================================
 $ PARTS(component):
-<Unityºİ-C#> ..1
-- Angle Limits: ¨¾¥u¶Ã¸õ
+<Unityç«¯-C#> ..1
+- Angle Limits: é˜²åªäº‚è·³
 - Duplicate 2 virtual Robot(Actual & Target)
-- TCP/IP³s½u(Socket; DataType;)
-- Vive Controller ¨Ï¥Î&«öÁä³]­p
+- TCP/IPé€£ç·š(Socket; DataType;)
+- Vive Controller ä½¿ç”¨&æŒ‰éµè¨­è¨ˆ
 
 ==============================
-<PCºİ-Cpp> ..2
-- TCP/IP³s½u(Socket; DataType; Filter?!)
-- ¦sÂI: °O¿ı¸ô®|
+<PCç«¯-Cpp> ..2
+- TCP/IPé€£ç·š(Socket; DataType; Filter?!)
+- å­˜é»: è¨˜éŒ„è·¯å¾‘
 
 ==============================
-<¨ä¥¦>  ..3
-- §¨¤öCADÁÙ¨Sµe
-- ¹êÅç³]­p&³W¹º
-- ®Õ¥¿
-- ¤H¦]²Î­p¤ÀªR
-
-
-
-
-
-
-
-
-
-
-
+<å…¶å®ƒ>  ..3
+- å¤¾çˆªCADé‚„æ²’ç•«
+- å¯¦é©—è¨­è¨ˆ&è¦åŠƒ
+- æ ¡æ­£
+- äººå› çµ±è¨ˆåˆ†æ
