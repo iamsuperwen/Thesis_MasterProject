@@ -1,5 +1,8 @@
 # [Thesis_MasterProject]'s Progress:
 
 <2017/02/19>
-* 研究GitHub(創了這個專案) =>預計將為連線版整理整理
-* 
+* 研究GitHub(創了這個專案)
+* 規劃整個架構(詳細請見TODO.txt)
+
+<2017/02/20>
+* [Planned]寫: PC端-與RV-2A的連線"PC_TCP"
