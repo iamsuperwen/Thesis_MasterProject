@@ -5,4 +5,8 @@
 * 規劃整個架構(詳細請見TODO.txt)
 
 <2017/02/20>
-* [Planned]寫: PC端-與RV-2A的連線"PC_TCP"
+* 嘗試用"機器人改5/HelloSphere.cpp"改寫: PC與RV-2A的連線"PC_TCP_Vive.cpp"
+  (失敗) 刪除: 歷屆功能 + 佳琪's 存點部分; 但還是不work (問題太多直接放棄QAQ)
+
+<2017/02/21>
+* 自己重寫"PC_TCP_Vive.cpp", 純連線功能: 1. w/ RV-2A  2. w/ Unity 
