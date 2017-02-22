@@ -28,10 +28,10 @@ using namespace std; ///
 #define MAXBUFLEN 512
 #define PI 3.14159265359
 
-//robot angle (degree)
+					 //robot angle (degree)
 double actualAngle[6] = { 0, 0, 90, -25, 0, 90 };		// robot 實際角度
 double commandAngle[6] = { 0, 0, 0, 0, 0, 0 };	        // 從actualAngle ~ targetAngle 之間的過渡(慢慢加)
-double targetAngle[6] = { -30, -20, 90, 5, 0, 90 };		// 目標角度
+double targetAngle[6] = { 30, 10, 120, 20, 0, 90 };		// 目標角度
 
 /*
 	targetAngle[0] = 0;    //range: ( -159.93 ~ +159.97 )  ; bound: +- 150 deg
@@ -72,7 +72,7 @@ timeval  sTimeOut;   // For timeout setting
 
 
 /*******************************************************************************
-							Robot互動相關
+					 Robot互動相關
 *******************************************************************************/
 void RobotConnect()		// 連接機器手臂的程式
 {
@@ -310,9 +310,7 @@ int main(int argc, char *argv[])
 {
 	HANDLE thread1;//, thread2, hMutex;
 	thread1 = CreateThread(NULL, 0, threadFunction1, NULL, 0, NULL);
-	WaitForSingleObject (thread1, INFINITE);
-
-
+	WaitForSingleObject(thread1, INFINITE);
 
 
 
