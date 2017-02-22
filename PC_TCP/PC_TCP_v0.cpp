@@ -28,22 +28,22 @@ using namespace std; ///
 #define MAXBUFLEN 512
 #define PI 3.14159265359
 
-					 /***** for 執行緒 *****/
-					 //HANDLE thread1, thread2, hMutex;
+/***** for 執行緒 *****/
+//HANDLE thread1, thread2, hMutex;
 
-					 //robot angle (degree)
+//robot angle (degree)
 double actualAngle[6] = { 0, 0, 90, -25, 0, 90 };		// robot 實際角度
 double commandAngle[6] = { 0, 0, 0, 0, 0, 0 };	        // 從actualAngle ~ targetAngle 之間的過渡(慢慢加)
 double targetAngle[6] = { -30, -20, 90, 5, 0, 90 };		// 目標角度
 
-													/*
-													targetAngle[0] = 0;    //range: ( -159.93 ~ +159.97 )  ; bound: +- 150 deg
-													targetAngle[1] = 0;    //range: ( -45     ~ +93.71  )  ; bound: +- 40  deg
-													targetAngle[2] = 90;   //range: ( +50.09  ~ +169.89 )  ; bound: +- 35  deg
-													targetAngle[3] = -25;  //range: ( -159.87 ~ +138.11 )  ; bound: +- 130 deg
-													targetAngle[4] = 0;    //range: ( -119.97 ~ +119.9  )  ; bound: +- 115 deg
-													targetAngle[5] = 0;    //range: ( -199.88 ~ +200    )  ; bound: +- 190 deg
-													*/
+/*
+	targetAngle[0] = 0;    //range: ( -159.93 ~ +159.97 )  ; bound: +- 150 deg
+	targetAngle[1] = 0;    //range: ( -45     ~ +93.71  )  ; bound: +- 40  deg
+	targetAngle[2] = 90;   //range: ( +50.09  ~ +169.89 )  ; bound: +- 35  deg
+	targetAngle[3] = -25;  //range: ( -159.87 ~ +138.11 )  ; bound: +- 130 deg
+	targetAngle[4] = 0;    //range: ( -119.97 ~ +119.9  )  ; bound: +- 115 deg
+	targetAngle[5] = 0;    //range: ( -199.88 ~ +200    )  ; bound: +- 190 deg
+*/
 
 WSADATA Data;
 SOCKADDR_IN destSockAddr;
@@ -74,9 +74,9 @@ fd_set   SockSet;    // Socket group used with select
 timeval  sTimeOut;   // For timeout setting
 
 
-					 /*******************************************************************************
-					 Robot互動相關
-					 *******************************************************************************/
+/*******************************************************************************
+							Robot互動相關
+*******************************************************************************/
 void RobotConnect()		// 連接機器手臂的程式
 {
 	// Windows Socket DLL initialization 
@@ -278,7 +278,7 @@ void CloseRobot()
 /*---------------------------------------------------------------------------------*/
 
 /*******************************************************************************
-執行緒
+									執行緒
 *******************************************************************************/
 //void Send(int grip); ///佳琪's
 /*
