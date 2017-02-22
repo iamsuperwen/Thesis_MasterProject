@@ -28,9 +28,6 @@ using namespace std; ///
 #define MAXBUFLEN 512
 #define PI 3.14159265359
 
-/***** for 執行緒 *****/
-//HANDLE thread1, thread2, hMutex;
-
 //robot angle (degree)
 double actualAngle[6] = { 0, 0, 90, -25, 0, 90 };		// robot 實際角度
 double commandAngle[6] = { 0, 0, 0, 0, 0, 0 };	        // 從actualAngle ~ targetAngle 之間的過渡(慢慢加)
@@ -281,84 +278,10 @@ void CloseRobot()
 									執行緒
 *******************************************************************************/
 //void Send(int grip); ///佳琪's
-/*
+
 DWORD WINAPI threadFunction1(LPVOID lpParameter) // 141Hz for dealing real robot
 {
-
-while (1)
-{
-if (isConnectRobot)
-{
-if (theFirstTime) {
-printf("Input targetAngle[0~5]: ");
-scanf_s("%lf, %lf, %lf, %lf, %lf, %lf", &targetAngle[0], &targetAngle[1], &targetAngle[2], &targetAngle[3], &targetAngle[4], &targetAngle[5]);
-theFirstTime = 0;
-}
-RobotDataRead();	// read robot joint angles
-}
-else
-{
-Sleep(6);  // control thread freq ///??
-}
-
-if (!resetMode)//if(CtrlMode == MODE_ROTATE) //直接給'角度'  ///佳琪's: teaching mode - motionPlan
-{
-
-if (isConnectRobot)
-{
-for (int i = 0; i<6; i++)
-{
-double delta = targetAngle[i] - actualAngle[i];    //fabs():絕對值;  (Unit: deg)
-
-if (fabs(delta) > 0.2)     //差大於一個值 => 慢慢加上;  (Unit: deg, 一次+0.2deg)
-{
-commandAngle[i] += delta*0.2;  //(Unit: deg)
-
-}
-//else                        //差小於一個值 => 忽略 (以免機械手微調造成異常
-}
-}
-}
-
-else// if(resetMode)
-{
-targetAngle[0] = 0;    //range: ( -159.93 ~ +159.97 )  ; bound: +- 150 deg
-targetAngle[1] = 0;    //range: ( -45     ~ +93.71  )  ; bound: +- 40  deg
-targetAngle[2] = 90;   //range: ( +50.09  ~ +169.89 )  ; bound: +- 35  deg
-targetAngle[3] = -25;  //range: ( -159.87 ~ +138.11 )  ; bound: +- 130 deg
-targetAngle[4] = 0;    //range: ( -119.97 ~ +119.9  )  ; bound: +- 115 deg
-targetAngle[5] = 0;    //range: ( -199.88 ~ +200    )  ; bound: +- 190 deg
-
-for (int i = 0; i<6; i++)
-{
-double delta = targetAngle[i] - actualAngle[i];
-
-if (fabs(delta)  > 0.035)    //(Unit: deg)
-{
-commandAngle[i] += delta / fabs(delta) * 0.005;
-actualAngle[i] += delta / fabs(delta) * 0.005;
-}
-}
-
-resetMode = 0;
-}
-
-}// end while(1)
-
-cout << "end thread1" << endl;
-return 0;
-}
-*/
-
-int main(int argc, char *argv[])
-{
-
-	RobotConnect();
-
-	//thread1 = CreateThread(NULL, 0, threadFunction1, NULL, 0, NULL);
-
-	//CloseHandle(thread1);
-
+	RobotConnect();  //here or Main?
 	while (loop) {
 
 		//if (status != SOCKET_ERROR)
@@ -375,12 +298,25 @@ int main(int argc, char *argv[])
 				commandAngle[i] = actualAngle[i];
 		}
 
-		//Sleep(10);
-		printf("loop = %d\n", loop);
 	}
+	CloseRobot();  //here or Main?
 
-	CloseRobot();
+	cout << "end thread1" << endl;
+	return 0;
+}
 
+
+int main(int argc, char *argv[])
+{
+	HANDLE thread1;//, thread2, hMutex;
+	thread1 = CreateThread(NULL, 0, threadFunction1, NULL, 0, NULL);
+	WaitForSingleObject (thread1, INFINITE);
+
+
+
+
+
+	CloseHandle(thread1);
 	return 0;
 }
 
