@@ -13,8 +13,20 @@
 * 今天只完成基本連線j1~6同動.. 檔名: itWorks_butStillHaveBug.cpp
 
 <2017/02/22>
+* PC_TCP_v0.cpp: 
+  - 順利與RV-2A連線 (using thread1) 
+  - 順利傳送move cmd! (但增加角度delta每軸固定)
+  - 
 * 慢慢改: itWorks_butStillHaveBug.cpp
   - 角度問題(speed? & Limit)
   - thread 
   - 加入 Unity連線
-  - Mutex?  
+  - Mutex?
+
+  P.S-1: "IOSendType = MXT_IO_NULL; IORecvType = MXT_IO_IN;" 才能正常傳輸(跟"改5"不同!)
+  P.S-2: main要"WaitForSingleObject"等thread結束!
+  
+ <2017/02/23>
+ * 做與Unity端的TCP連線"test_TCP1", 還沒試過~ (因為cpp還沒寫thread)
+ 
+ 
