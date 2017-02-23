@@ -317,6 +317,3 @@ int main(int argc, char *argv[])
 	CloseHandle(thread1);
 	return 0;
 }
-
-
-
