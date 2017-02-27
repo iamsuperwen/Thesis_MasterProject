@@ -10,7 +10,7 @@ public class Client : MonoBehaviour
 
 	///initial(home) theta = { 0, 90, 0, 0, 0, 0 }
 	//public ???
-	float[] theta_tar = new float[] { 0, 90, 0, 0, 0, 0 };  //VR robot的 target theta
+	float[] theta_tar = new float[] { 123, 44, 67, 89, -32, 1 };  //VR robot的 target theta
 	float[] theta_now = new float[] { 0, 90, 0, 0, 0, 0 };  //VR robot的 present theta(now)
 	float[] theta_0 = new float[] { 0, 90, 0, 0, 0, 0 };  //VR robot的 initial theta(home)
 	float[] theta_user = new float[] { 0, 0, 0, 0, 0, 0 };  //theta_tar -> targetAngle(PC) 的相對角度(中繼站)
@@ -27,22 +27,24 @@ public class Client : MonoBehaviour
 	{
 		if (ct.receiveMessage != null)  //***** Update 'actual angle'  /// W/out protect yet!
 		{
-			//string[] recv_msg = ct.receiveMessage.Split (',');  //用逗號分割字串; using System;
-			string[] recv_msg = ct.receiveMessage.Split (new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);  //用逗號分割字串; using System;
+			string[] recv_msg = ct.receiveMessage.Split (',');  //用逗號分割字串; using System;
+			//string[] recv_msg = ct.receiveMessage.Split (new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);  //用逗號分割字串; using System;
 			Debug.Log ("ct.receiveMessage:" + ct.receiveMessage);
 			if (recv_msg.Length > 6) {
-				for (int i = 0; i < 5; i++)
+				for (int i = 0; i < 6; i++)
 					theta_now [i] = -float.Parse (recv_msg [i]) + theta_0[i];  //Convert: string -> float
 			}
 			else {
 				//Debug.Log ("ct.receiveMessage ERROR: " + ct.receiveMessage);
-				Debug.Log ("ct.receiveMessage ERROR: recv_msg.Length " +recv_msg.Length);
+				Debug.Log ("ct.receiveMessage ERROR: recv_msg.Length = " + recv_msg.Length);
 			}
 			ct.receiveMessage = null;
+
+			Debug.Log ("recv_msg : " + recv_msg[0] + " // ");
 		}
 
 		if (isSend == true) {    //***** Send 'target angle' to PC
-			for (int i = 0; i < 5; i++)
+			for (int i = 0; i < 6; i++)
 				theta_user [i] = -(theta_tar [i] - theta_0 [i]);
 
 			SendTargetAngle ();

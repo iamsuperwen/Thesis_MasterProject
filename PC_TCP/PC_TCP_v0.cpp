@@ -29,19 +29,19 @@ using namespace std; ///
 #define PI 3.14159265359
 
 //robot angle (degree)
-double                                  [6] = { 0, 0, 90, -25, 0, 90 };		// robot initial angle
-double actualAngle[6] = { 0, 0, 90, -25, 0, 90 };   // robot 實際角度
+double homeAngle[6] = { 0, 0, 90, -25, 0, 90 };		// robot initial angle
+double actualAngle[6] = { 0, 0, 100, -5, 0, 90 };   // robot 實際角度
 double commandAngle[6] = { 0, 0, 0, 0, 0, 0 };	    // 從actualAngle ~ targetAngle 之間的過渡(慢慢加)
 double targetAngle[6] = { 30, 10, 120, 20, 0, 90 };	// 目標角度
 
-/*
-	targetAngle[0] = 0;    //range: ( -159.93 ~ +159.97 )  ; bound: +- 150 deg
-	targetAngle[1] = 0;    //range: ( -45     ~ +93.71  )  ; bound: +- 40  deg
-	targetAngle[2] = 90;   //range: ( +50.09  ~ +169.89 )  ; bound: +- 35  deg
-	targetAngle[3] = -25;  //range: ( -159.87 ~ +138.11 )  ; bound: +- 130 deg
-	targetAngle[4] = 0;    //range: ( -119.97 ~ +119.9  )  ; bound: +- 115 deg
-	targetAngle[5] = 0;    //range: ( -199.88 ~ +200    )  ; bound: +- 190 deg
-*/
+													/*
+													targetAngle[0] = 0;    //range: ( -159.93 ~ +159.97 )  ; bound: +- 150 deg
+													targetAngle[1] = 0;    //range: ( -45     ~ +93.71  )  ; bound: +- 40  deg
+													targetAngle[2] = 90;   //range: ( +50.09  ~ +169.89 )  ; bound: +- 35  deg
+													targetAngle[3] = -25;  //range: ( -159.87 ~ +138.11 )  ; bound: +- 130 deg
+													targetAngle[4] = 0;    //range: ( -119.97 ~ +119.9  )  ; bound: +- 115 deg
+													targetAngle[5] = 0;    //range: ( -199.88 ~ +200    )  ; bound: +- 190 deg
+													*/
 
 WSADATA Data;
 SOCKADDR_IN destSockAddr;
@@ -72,9 +72,9 @@ fd_set   SockSet;    // Socket group used with select
 timeval  sTimeOut;   // For timeout setting
 
 
-/*******************************************************************************
+					 /*******************************************************************************
 					 Robot互動相關
-*******************************************************************************/
+					 *******************************************************************************/
 void RobotConnect()		// 連接機器手臂的程式
 {
 	// Windows Socket DLL initialization 
@@ -111,7 +111,7 @@ void RobotDataRead()		// 讀寫機器手臂資料
 	memset(&MXTsend, 0, sizeof(MXTsend));
 	memset(&MXTrecv, 0, sizeof(MXTrecv));
 
-// ******************** Send: send 'CommandAngle' ******************** // 
+	// ******************** Send: send 'CommandAngle' ******************** // 
 	// Transmission data creation 
 	if (loop == 1)
 	{  // Only first time  //
@@ -180,7 +180,7 @@ void RobotDataRead()		// 讀寫機器手臂資料
 			cerr << "ERROR: WSACIeanup unsuccessful" << endl;
 	}	// end if
 
-// ******************** Receive: get 'actualAngle' ******************** // 
+		// ******************** Receive: get 'actualAngle' ******************** // 
 	memset(recvText, 0, MAXBUFLEN);
 
 	retry = 1;                                    // No. of reception retries
@@ -227,7 +227,7 @@ void RobotDataRead()		// 讀寫機器手臂資料
 			if (loop == 1)
 			{
 				memcpy(&jnt_now, DispData, sizeof(JOINT));
-				
+
 				// *****record initial angle*****
 				homeAngle[0] = (j->j1)*180.0 / PI;
 				homeAngle[1] = (j->j2)*180.0 / PI;
@@ -235,7 +235,7 @@ void RobotDataRead()		// 讀寫機器手臂資料
 				homeAngle[3] = (j->j4)*180.0 / PI;
 				homeAngle[4] = (j->j5)*180.0 / PI;
 				homeAngle[5] = (j->j6)*180.0 / PI;
-				
+
 				loop = 2;
 			}
 
@@ -285,7 +285,7 @@ void CloseRobot()
 /*---------------------------------------------------------------------------------*/
 
 /*******************************************************************************
-									執行緒
+執行緒
 *******************************************************************************/
 //void Send(int grip); ///佳琪's
 
@@ -316,16 +316,16 @@ DWORD WINAPI threadFunction1(LPVOID lpParameter) // 141Hz for dealing real robot
 }
 
 //=================================收+發資料 to Unity 的thread function==========================================
-DWORD WINAPI threadFunction99(LPVOID lpParameter)  
+DWORD WINAPI threadFunction99(LPVOID lpParameter)
 {
-	char rsBuffer[128];  //9*6+5+10=69 (6 joints * '(-)000.0000', round off to the 4th decimal + ',-777.7777' )  /// 60 -> 256 !??
+	char rsBuffer[80];  //9*6+5+10=69 (6 joints * '(-)000.0000', round off to the 4th decimal + ',-777.7777' )  /// 60 -> 256 !??
 	int bytesRecv;
-	
+
 	// ********** Recv from Unity: targetAngle (差值!) **********
 	bytesRecv = recv(m_socket, rsBuffer, sizeof(rsBuffer), 0);
 	if (bytesRecv == SOCKET_ERROR)
-			printf("Server: recv() error %ld.\n", WSAGetLastError());
-	else if(strcmp(rsBuffer,"\0")!=0)
+		printf("Server: recv() error %ld.\n", WSAGetLastError());
+	else if (strcmp(rsBuffer, "\0") != 0)
 	{
 		printf("Server: Received data is: %s\n", rsBuffer);
 
@@ -342,24 +342,31 @@ DWORD WINAPI threadFunction99(LPVOID lpParameter)
 			}
 			targetAngle[i] = atof(token) + homeAngle[i];  //initial angle + 角度差(from Unity, string -> float)
 			token = strtok_s(NULL, s, &next_token);
+			printf("NEW~ targetAngle[%d]= %f\n",i, targetAngle[i]);
 		}
-		printf("~ targetAngle[0~6]=(%f, %f, %f, %f, %f, %f)\n", \
+		printf("all~ targetAngle[0~6]=(%f, %f, %f, %f, %f, %f)\n", \
 			targetAngle[0], targetAngle[1], targetAngle[2], targetAngle[3], targetAngle[4], targetAngle[5]);
 	}
-	
+
 	// ********** Send to Unity: actualAngle (差值!) **********
 	sprintf_s(rsBuffer, "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,777.7777", \
-				(actualAngle[0]-homeAngle[0]), (actualAngle[1]-homeAngle[1]), (actualAngle[2]-homeAngle[2]), \
-				(actualAngle[3]-homeAngle[3]), (actualAngle[4]-homeAngle[4]), (actualAngle[5]-homeAngle[5]);
-	printf("~~SendMsg: %s\n",rsBuffer);
+		(actualAngle[0] - homeAngle[0]), (actualAngle[1] - homeAngle[1]), (actualAngle[2] - homeAngle[2]), \
+		(actualAngle[3] - homeAngle[3]), (actualAngle[4] - homeAngle[4]), (actualAngle[5] - homeAngle[5]));
+	printf("~~SendMsg: %s\n", rsBuffer);
 	send(m_socket, rsBuffer, sizeof(rsBuffer), 0);
-		
+
+	printf("~~Update:  targetAngle[0~6]=(%f, %f, %f, %f, %f, %f)\n", targetAngle[0], targetAngle[1], targetAngle[2], targetAngle[3], targetAngle[4], targetAngle[5]);
+	printf("~~Update:  actualAngle[0~6]=(%f, %f, %f, %f, %f, %f)\n", actualAngle[0], actualAngle[1], actualAngle[2], actualAngle[3], actualAngle[4], actualAngle[5]);
+	printf("~~Update:  commandAngle[0~6]=(%f, %f, %f, %f, %f, %f)\n", commandAngle[0], commandAngle[1], commandAngle[2], commandAngle[3], commandAngle[4], commandAngle[5]);
+
+
 	return 0;
 }
 
 //=========================================連平板的thread function==================================================
-DWORD WINAPI threadFunction5(LPVOID lpParameter)   
+DWORD WINAPI threadFunction5(LPVOID lpParameter)
 {
+	HANDLE thread99;
 	WORD wVersionRequested;
 	//WSADATA結構用來儲存 Windows 通訊端初始化資訊的呼叫所傳回的AfxSocketInit全域函式。
 	WSADATA wsaData;
@@ -372,13 +379,13 @@ DWORD WINAPI threadFunction5(LPVOID lpParameter)
 		printf("Server: The Winsock dll not found!\n");
 		return 0;
 	}
-	if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2 )
+	if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2)
 	{
 		printf("Server: The dll do not support the Winsock version %u.%u!\n", LOBYTE(wsaData.wVersion), HIBYTE(wsaData.wVersion));
 		WSACleanup();
 		return 0;
-	} 
-//////////=================Create a socket======================////////////////////////
+	}
+	//////////=================Create a socket======================////////////////////////
 	m_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	// Check for errors to ensure that the socket is a valid socket.
 	if (m_socket == INVALID_SOCKET)
@@ -388,7 +395,7 @@ DWORD WINAPI threadFunction5(LPVOID lpParameter)
 		return 0;
 	}
 	sockaddr_in service;
- 
+
 	// AF_INET is the Internet address family.
 	service.sin_family = AF_INET;
 	// "127.0.0.1" is the local IP address to which the socket will be bound.
@@ -403,7 +410,7 @@ DWORD WINAPI threadFunction5(LPVOID lpParameter)
 	if (listen(m_socket, 10) == SOCKET_ERROR)
 		printf("Server: listen(): Error listening on socket %ld.\n", WSAGetLastError());
 	SOCKET AcceptSocket;
-	printf("Server: Waiting for a client to connect...\n" );
+	printf("Server: Waiting for a client to connect...\n");
 	printf("***Hint: Server is ready...run your client program...***\n");
 
 	while (1)//一直等待直到client連線成功
@@ -417,7 +424,6 @@ DWORD WINAPI threadFunction5(LPVOID lpParameter)
 		m_socket = AcceptSocket;
 		break;
 	}
-	
 
 	while (1)
 	{
@@ -430,13 +436,13 @@ DWORD WINAPI threadFunction5(LPVOID lpParameter)
 int main(int argc, char *argv[])
 {
 	HANDLE thread1, thread5;//, thread2, hMutex;
-	//thread1 = CreateThread(NULL, 0, threadFunction1, NULL, 0, NULL);
-	//WaitForSingleObject(thread1, INFINITE);
+							//thread1 = CreateThread(NULL, 0, threadFunction1, NULL, 0, NULL);
+							//WaitForSingleObject(thread1, INFINITE);
 
 	thread5 = CreateThread(NULL, 0, threadFunction5, NULL, 0, NULL);
 
 	while (1) {
-		
+
 	}
 
 	//CloseHandle(thread1);

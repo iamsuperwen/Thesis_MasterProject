@@ -95,7 +95,8 @@ class ClientThread
 	{
 		if (clientSocket.Connected == true)
 		{
-			byte[] bytes = new byte[256];			
+			byte[] bytes = new byte[256];		
+			clientSocket.Receive(bytes);
 			receiveMessage = Encoding.ASCII.GetString(bytes);
 		}
 	}
