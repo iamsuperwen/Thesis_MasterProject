@@ -5,12 +5,12 @@ Features:
 2. [NOT YET] Unity(C#) <-> {PC(Cpp) <-> RV-2A}
 Author: Tsai,Chia-Wen
 Date: 2017/02/20
-Last update: 2017/02/20
+Last update: 2017/02/27
 Status: OK! 但功能有限, 詳見Notes
 Notes:
 - 目前只完成PC & RV-2A的連線(純粹給j1~6, 並move)
-- 待完成: 加thread
 - 待完成: 與Unity連線
+- 進行中: 與Unity的角度傳輸&轉換
 ******************************************************************************/
 
 #include <windows.h> 
@@ -28,10 +28,11 @@ using namespace std; ///
 #define MAXBUFLEN 512
 #define PI 3.14159265359
 
-					 //robot angle (degree)
-double actualAngle[6] = { 0, 0, 90, -25, 0, 90 };		// robot 實際角度
-double commandAngle[6] = { 0, 0, 0, 0, 0, 0 };	        // 從actualAngle ~ targetAngle 之間的過渡(慢慢加)
-double targetAngle[6] = { 30, 10, 120, 20, 0, 90 };		// 目標角度
+//robot angle (degree)
+double                                  [6] = { 0, 0, 90, -25, 0, 90 };		// robot initial angle
+double actualAngle[6] = { 0, 0, 90, -25, 0, 90 };   // robot 實際角度
+double commandAngle[6] = { 0, 0, 0, 0, 0, 0 };	    // 從actualAngle ~ targetAngle 之間的過渡(慢慢加)
+double targetAngle[6] = { 30, 10, 120, 20, 0, 90 };	// 目標角度
 
 /*
 	targetAngle[0] = 0;    //range: ( -159.93 ~ +159.97 )  ; bound: +- 150 deg
@@ -44,7 +45,7 @@ double targetAngle[6] = { 30, 10, 120, 20, 0, 90 };		// 目標角度
 
 WSADATA Data;
 SOCKADDR_IN destSockAddr;
-SOCKET destSocket;
+SOCKET destSocket, m_socket;  //socket to RV-2A, Unity
 unsigned long destAddr;
 int status;
 int numsnt;
@@ -110,7 +111,7 @@ void RobotDataRead()		// 讀寫機器手臂資料
 	memset(&MXTsend, 0, sizeof(MXTsend));
 	memset(&MXTrecv, 0, sizeof(MXTrecv));
 
-	// ******************** Send: send 'CommandAngle' ******************** // 
+// ******************** Send: send 'CommandAngle' ******************** // 
 	// Transmission data creation 
 	if (loop == 1)
 	{  // Only first time  //
@@ -124,7 +125,7 @@ void RobotDataRead()		// 讀寫機器手臂資料
 	else
 	{ // Second and following times
 		MXTsend.Command = MXT_CMD_MOVE;
-		MXTsend.SendType = 2; 	// When transmitting from the persona; computer to the controller, designate the type of position data transmitted from the personal. 
+		MXTsend.SendType = 2; 	// When transmitting from the personal computer to the controller, designate the type of position data transmitted from the personal. 
 								// 0 no data, 1 XYZ data, 2 Joint data, 3 Motor pulse data
 
 		MXTsend.RecvType = 2;	// When receiving (monitoring) from the controller to the personal computer, indicate the type pf position data replied from the controller.
@@ -179,7 +180,7 @@ void RobotDataRead()		// 讀寫機器手臂資料
 			cerr << "ERROR: WSACIeanup unsuccessful" << endl;
 	}	// end if
 
-		// ******************** Receive: get 'actualAngle' ******************** // 
+// ******************** Receive: get 'actualAngle' ******************** // 
 	memset(recvText, 0, MAXBUFLEN);
 
 	retry = 1;                                    // No. of reception retries
@@ -222,12 +223,21 @@ void RobotDataRead()		// 讀寫機器手臂資料
 			DispData = &MXTrecv.dat;
 
 			/*------------------------------------------------------*/
+			JOINT  *j = (JOINT*)DispData;
 			if (loop == 1)
 			{
 				memcpy(&jnt_now, DispData, sizeof(JOINT));
-				loop = 2;  ///這三小0.0??
+				
+				// *****record initial angle*****
+				homeAngle[0] = (j->j1)*180.0 / PI;
+				homeAngle[1] = (j->j2)*180.0 / PI;
+				homeAngle[2] = (j->j3)*180.0 / PI;
+				homeAngle[3] = (j->j4)*180.0 / PI;
+				homeAngle[4] = (j->j5)*180.0 / PI;
+				homeAngle[5] = (j->j6)*180.0 / PI;
+				
+				loop = 2;
 			}
-			JOINT  *j = (JOINT*)DispData;
 
 			/*------------------------------------------------------*/
 			// 將真實機器手臂的角度回傳到虛擬機器手臂上
@@ -305,15 +315,133 @@ DWORD WINAPI threadFunction1(LPVOID lpParameter) // 141Hz for dealing real robot
 	return 0;
 }
 
+//=================================收+發資料 to Unity 的thread function==========================================
+DWORD WINAPI threadFunction99(LPVOID lpParameter)  
+{
+	char rsBuffer[128];  //9*6+5+10=69 (6 joints * '(-)000.0000', round off to the 4th decimal + ',-777.7777' )  /// 60 -> 256 !??
+	int bytesRecv;
+	
+	// ********** Recv from Unity: targetAngle (差值!) **********
+	bytesRecv = recv(m_socket, rsBuffer, sizeof(rsBuffer), 0);
+	if (bytesRecv == SOCKET_ERROR)
+			printf("Server: recv() error %ld.\n", WSAGetLastError());
+	else if(strcmp(rsBuffer,"\0")!=0)
+	{
+		printf("Server: Received data is: %s\n", rsBuffer);
+
+		// ********** Split() in C : using strtok. **********
+		char s[] = ",";
+		char *token;
+		char *next_token;
+		token = strtok_s(rsBuffer, s, &next_token);  //get the first token
+		for (int i = 0; i<6; i++)  //walk through other tokens
+		{
+			if (token == NULL) {
+				printf("recv() Angle ERROR!\n");
+				break;
+			}
+			targetAngle[i] = atof(token) + homeAngle[i];  //initial angle + 角度差(from Unity, string -> float)
+			token = strtok_s(NULL, s, &next_token);
+		}
+		printf("~ targetAngle[0~6]=(%f, %f, %f, %f, %f, %f)\n", \
+			targetAngle[0], targetAngle[1], targetAngle[2], targetAngle[3], targetAngle[4], targetAngle[5]);
+	}
+	
+	// ********** Send to Unity: actualAngle (差值!) **********
+	sprintf_s(rsBuffer, "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,777.7777", \
+				(actualAngle[0]-homeAngle[0]), (actualAngle[1]-homeAngle[1]), (actualAngle[2]-homeAngle[2]), \
+				(actualAngle[3]-homeAngle[3]), (actualAngle[4]-homeAngle[4]), (actualAngle[5]-homeAngle[5]);
+	printf("~~SendMsg: %s\n",rsBuffer);
+	send(m_socket, rsBuffer, sizeof(rsBuffer), 0);
+		
+	return 0;
+}
+
+//=========================================連平板的thread function==================================================
+DWORD WINAPI threadFunction5(LPVOID lpParameter)   
+{
+	WORD wVersionRequested;
+	//WSADATA結構用來儲存 Windows 通訊端初始化資訊的呼叫所傳回的AfxSocketInit全域函式。
+	WSADATA wsaData;
+	int wsaerr;
+	// Using MAKEWORD macro, Winsock version request 2.2
+	wVersionRequested = MAKEWORD(2, 2);
+	wsaerr = WSAStartup(wVersionRequested, &wsaData);
+	if (wsaerr != 0)
+	{
+		printf("Server: The Winsock dll not found!\n");
+		return 0;
+	}
+	if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2 )
+	{
+		printf("Server: The dll do not support the Winsock version %u.%u!\n", LOBYTE(wsaData.wVersion), HIBYTE(wsaData.wVersion));
+		WSACleanup();
+		return 0;
+	} 
+//////////=================Create a socket======================////////////////////////
+	m_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	// Check for errors to ensure that the socket is a valid socket.
+	if (m_socket == INVALID_SOCKET)
+	{
+		printf("Server: Error at socket(): %ld\n", WSAGetLastError());
+		WSACleanup();
+		return 0;
+	}
+	sockaddr_in service;
+ 
+	// AF_INET is the Internet address family.
+	service.sin_family = AF_INET;
+	// "127.0.0.1" is the local IP address to which the socket will be bound.
+	service.sin_addr.s_addr = inet_addr("127.0.0.1");
+	service.sin_port = htons(5566);
+	if (bind(m_socket, (SOCKADDR*)&service, sizeof(service)) == SOCKET_ERROR)
+	{
+		printf("Server: bind() failed: %ld.\n", WSAGetLastError());
+		closesocket(m_socket);
+		return 0;
+	}
+	if (listen(m_socket, 10) == SOCKET_ERROR)
+		printf("Server: listen(): Error listening on socket %ld.\n", WSAGetLastError());
+	SOCKET AcceptSocket;
+	printf("Server: Waiting for a client to connect...\n" );
+	printf("***Hint: Server is ready...run your client program...***\n");
+
+	while (1)//一直等待直到client連線成功
+	{
+		AcceptSocket = SOCKET_ERROR;
+		while (AcceptSocket == SOCKET_ERROR)
+		{
+			AcceptSocket = accept(m_socket, NULL, NULL);
+		}
+		printf("Server: Client Connected!\n");
+		m_socket = AcceptSocket;
+		break;
+	}
+	
+
+	while (1)
+	{
+		thread99 = CreateThread(NULL, 0, threadFunction99, NULL, 0, NULL);  //收+發 資料to Unity
+	}
+	//CloseHandle(thread99);
+	return 0;
+}
 
 int main(int argc, char *argv[])
 {
-	HANDLE thread1;//, thread2, hMutex;
-	thread1 = CreateThread(NULL, 0, threadFunction1, NULL, 0, NULL);
-	WaitForSingleObject(thread1, INFINITE);
+	HANDLE thread1, thread5;//, thread2, hMutex;
+	//thread1 = CreateThread(NULL, 0, threadFunction1, NULL, 0, NULL);
+	//WaitForSingleObject(thread1, INFINITE);
 
+	thread5 = CreateThread(NULL, 0, threadFunction5, NULL, 0, NULL);
 
+	while (1) {
+		
+	}
 
-	CloseHandle(thread1);
+	//CloseHandle(thread1);
+	CloseHandle(thread5);
+
 	return 0;
 }
+

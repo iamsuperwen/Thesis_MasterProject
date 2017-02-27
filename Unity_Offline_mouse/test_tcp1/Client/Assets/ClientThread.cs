@@ -47,16 +47,16 @@ class ClientThread
 		}
 	}
 
-	public void Send(string message)  //Send 'targetAngle' from PC(.cpp)
+	public void Send(string message)  //Send 'target angle' to PC(.cpp)
 	{
-		if (message.Length < 41)  // 6*6+5=41 (6 joints, '0.0000', round off to the 4th decimal + ',' )
+		if (message.Length < 50)  //7*6+5+10=51 (6 joints * '(-)0.0000', round off to the 4th decimal + ',-999.9999' )
 			throw new NullReferenceException("ERROR: 'targetAngle[1~6]' send to PC go wrong!");
 		else
 			sendMessage = message;
 		SendMessage();
 	}
 
-	public void Receive()  //Recv 'actualAngle' from PC(.cpp)
+	public void Receive()  //Recv 'actual angle' from PC(.cpp)
 	{
 		if (threadReceive != null && threadReceive.IsAlive == true)
 			return;
