@@ -34,14 +34,14 @@ double actualAngle[6] = { 0, 0, 100, -5, 0, 90 };   // robot 實際角度
 double commandAngle[6] = { 0, 0, 0, 0, 0, 0 };	    // 從actualAngle ~ targetAngle 之間的過渡(慢慢加)
 double targetAngle[6] = { 30, 10, 120, 20, 0, 90 };	// 目標角度
 
-													/*
-													targetAngle[0] = 0;    //range: ( -159.93 ~ +159.97 )  ; bound: +- 150 deg
-													targetAngle[1] = 0;    //range: ( -45     ~ +93.71  )  ; bound: +- 40  deg
-													targetAngle[2] = 90;   //range: ( +50.09  ~ +169.89 )  ; bound: +- 35  deg
-													targetAngle[3] = -25;  //range: ( -159.87 ~ +138.11 )  ; bound: +- 130 deg
-													targetAngle[4] = 0;    //range: ( -119.97 ~ +119.9  )  ; bound: +- 115 deg
-													targetAngle[5] = 0;    //range: ( -199.88 ~ +200    )  ; bound: +- 190 deg
-													*/
+/*
+	targetAngle[0] = 0;    //range: ( -159.93 ~ +159.97 )  ; bound: +- 150 deg
+	targetAngle[1] = 0;    //range: ( -45     ~ +93.71  )  ; bound: +- 40  deg
+	targetAngle[2] = 90;   //range: ( +50.09  ~ +169.89 )  ; bound: +- 35  deg
+	targetAngle[3] = -25;  //range: ( -159.87 ~ +138.11 )  ; bound: +- 130 deg
+	targetAngle[4] = 0;    //range: ( -119.97 ~ +119.9  )  ; bound: +- 115 deg
+	targetAngle[5] = 0;    //range: ( -199.88 ~ +200    )  ; bound: +- 190 deg
+*/
 
 WSADATA Data;
 SOCKADDR_IN destSockAddr;
@@ -327,7 +327,7 @@ DWORD WINAPI threadFunction99(LPVOID lpParameter)
 		printf("Server: recv() error %ld.\n", WSAGetLastError());
 	else if (strcmp(rsBuffer, "\0") != 0)
 	{
-		printf("Server: Received data is: %s\n", rsBuffer);
+		//printf("Server: Received data is: %s\n", rsBuffer);
 
 		// ********** Split() in C : using strtok. **********
 		char s[] = ",";
@@ -342,17 +342,17 @@ DWORD WINAPI threadFunction99(LPVOID lpParameter)
 			}
 			targetAngle[i] = atof(token) + homeAngle[i];  //initial angle + 角度差(from Unity, string -> float)
 			token = strtok_s(NULL, s, &next_token);
-			printf("NEW~ targetAngle[%d]= %f\n",i, targetAngle[i]);
+			//printf("NEW~ targetAngle[%d]= %f\n",i, targetAngle[i]);
 		}
-		printf("all~ targetAngle[0~6]=(%f, %f, %f, %f, %f, %f)\n", \
-			targetAngle[0], targetAngle[1], targetAngle[2], targetAngle[3], targetAngle[4], targetAngle[5]);
+		//printf("all~ targetAngle[0~6]=(%f, %f, %f, %f, %f, %f)\n", \
+			//targetAngle[0], targetAngle[1], targetAngle[2], targetAngle[3], targetAngle[4], targetAngle[5]);
 	}
 
 	// ********** Send to Unity: actualAngle (差值!) **********
 	sprintf_s(rsBuffer, "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,777.7777", \
 		(actualAngle[0] - homeAngle[0]), (actualAngle[1] - homeAngle[1]), (actualAngle[2] - homeAngle[2]), \
 		(actualAngle[3] - homeAngle[3]), (actualAngle[4] - homeAngle[4]), (actualAngle[5] - homeAngle[5]));
-	printf("~~SendMsg: %s\n", rsBuffer);
+	//printf("~~SendMsg: %s\n", rsBuffer);
 	send(m_socket, rsBuffer, sizeof(rsBuffer), 0);
 
 	printf("~~Update:  targetAngle[0~6]=(%f, %f, %f, %f, %f, %f)\n", targetAngle[0], targetAngle[1], targetAngle[2], targetAngle[3], targetAngle[4], targetAngle[5]);
@@ -436,14 +436,12 @@ DWORD WINAPI threadFunction5(LPVOID lpParameter)
 int main(int argc, char *argv[])
 {
 	HANDLE thread1, thread5;//, thread2, hMutex;
-							//thread1 = CreateThread(NULL, 0, threadFunction1, NULL, 0, NULL);
-							//WaitForSingleObject(thread1, INFINITE);
+	thread1 = CreateThread(NULL, 0, threadFunction1, NULL, 0, NULL);
+	WaitForSingleObject(thread1, INFINITE);
 
 	thread5 = CreateThread(NULL, 0, threadFunction5, NULL, 0, NULL);
 
-	while (1) {
-
-	}
+	//while (1) {	}
 
 	//CloseHandle(thread1);
 	CloseHandle(thread5);

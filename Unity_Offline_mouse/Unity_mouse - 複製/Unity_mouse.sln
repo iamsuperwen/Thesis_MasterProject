@@ -1,0 +1,23 @@
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2008
+
+Project("{ADDA5C97-37E5-200E-40ED-D6711CEF9ACD}") = "Unity_mouse", "Assembly-CSharp.csproj", "{3A3F840F-0BA6-3317-6698-EE9CC3BDEA5B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3A3F840F-0BA6-3317-6698-EE9CC3BDEA5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A3F840F-0BA6-3317-6698-EE9CC3BDEA5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A3F840F-0BA6-3317-6698-EE9CC3BDEA5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A3F840F-0BA6-3317-6698-EE9CC3BDEA5B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = Assembly-CSharp.csproj
+	EndGlobalSection
+EndGlobal
