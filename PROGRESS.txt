@@ -26,7 +26,18 @@
   P.S-1: "IOSendType = MXT_IO_NULL; IORecvType = MXT_IO_IN;" 才能正常傳輸(跟"改5"不同!)
   P.S-2: main要"WaitForSingleObject"等thread結束!
   
- <2017/02/23>
- * 做與Unity端的TCP連線"test_TCP1", 還沒試過~ (因為cpp還沒寫thread)
+<2017/02/23>
+* 做與Unity端的TCP連線"test_TCP1", 還沒試過~ (因為cpp還沒寫thread)
  
+...失意...
  
+<2017/02/27>
+* 用"網路blog(連結如下)"的方式連線, 好像是"同步"的TCP連線方式做Unity pj
+ 	• Socket: Server/Client example in Unity 中文 (It works!) https://goo.gl/UWTA87
+  - "Unity <--> Cpp" 可以連, 但是會當機, 需要sleep(正確來說應該是waitforsecond(0.5F)?)
+  - Bug 未解, wait治標不至本..
+  
+<2017/02/28>
+* 改用"佳琪&德智&宸豐"的NetworkStream的方式寫TCP, Unity單與Cpp連OK, 但On-line(RV-2A)會當機
+  - 在Unity pj/Client.cs 中加入"dirtyCnt"多個frame才執行Send
+  - Bug 未解, dirtyCnt治標不至本..
