@@ -41,3 +41,9 @@
 * 改用"佳琪&德智&宸豐"的NetworkStream的方式寫TCP, Unity單與Cpp連OK, 但On-line(RV-2A)會當機
   - 在Unity pj/Client.cs 中加入"dirtyCnt"多個frame才執行Send
   - Bug 未解, dirtyCnt治標不至本..
+  
+<2017/03/01>
+* 在VR robot_actual上加上tag "actualRobot" (手動加的...); ex. "J1_a"代表屬於actual robot的Joint1的實體
+  - 我發現我命名命錯了.., 應該不是"J" -> joint而是link!?  算惹~將錯就錯XD 
+  
+  
