@@ -329,20 +329,20 @@ DWORD WINAPI threadFunction99(LPVOID lpParameter)
 		(actualAngle[3] - homeAngle[3]), (actualAngle[4] - homeAngle[4]), (actualAngle[5] - homeAngle[5]));
 	ReleaseMutex(ghMutex);  //ghMutex Release.
 
-	//printf("~~SendMsg: %s\n", sBuffer);
+	printf("(T9/id:%d) Send Raw (to Unity): %s\n", GetCurrentThreadId(), sBuffer);
 	send(m_socket, sBuffer, sizeof(sBuffer), 0);
 
 	// ********** Recv from Unity: targetAngle (差值!) **********
 	bytesRecv = recv(m_socket, rBuffer, sizeof(rBuffer), 0);
 	if (bytesRecv == SOCKET_ERROR){
-		printf("Server: recv() error %ld.\n", WSAGetLastError());
+		printf("(T9/id:%d) Server: recv() error %ld.\n", GetCurrentThreadId(), WSAGetLastError());
 		WaitForSingleObject(Mutex99, INFINITE);  //Mutex99 Lock!
 		sockErr99_Cnt++;
-		ReleaseMutex(Mutex99);  //ghMutex Release.
+		ReleaseMutex(Mutex99);  //Mutex99 Release.
 	}
 	else if (rBuffer[0] != 'a')
 	{
-		//printf("Server: Received data is: %s\n", rBuffer);
+		printf("(T9/id:%d) Receive Raw (from Unity): %s\n", GetCurrentThreadId(), rBuffer);
 
 		// ********** Split() in C : using strtok. **********
 		char s[] = ",";
@@ -352,7 +352,7 @@ DWORD WINAPI threadFunction99(LPVOID lpParameter)
 		for (int i = 0; i<6; i++)  //walk through other tokens
 		{
 			if (token == NULL) {
-				printf("recv() Angle ERROR!\n");				
+				printf("(T9/id:%d) recv() Angle ERROR!\n", GetCurrentThreadId());				
 				break;
 			}
 			targetAngle[i] = atof(token) + homeAngle[i];  //initial angle + 角度差(from Unity, string -> float)
@@ -364,7 +364,7 @@ DWORD WINAPI threadFunction99(LPVOID lpParameter)
 	}
 
 
-	printf("~Update:  targetAngle[0~6]=(%f, %f, %f, %f, %f, %f)\n", targetAngle[0], targetAngle[1], targetAngle[2], targetAngle[3], targetAngle[4], targetAngle[5]);
+	//printf("~Update:  targetAngle[0~6]=(%f, %f, %f, %f, %f, %f)\n", targetAngle[0], targetAngle[1], targetAngle[2], targetAngle[3], targetAngle[4], targetAngle[5]);
 	//printf("~~Update:  actualAngle[0~6]=(%f, %f, %f, %f, %f, %f)\n\n", actualAngle[0], actualAngle[1], actualAngle[2], actualAngle[3], actualAngle[4], actualAngle[5]);
 	//printf("~~~Update:  commandAngle[0~6]=(%f, %f, %f, %f, %f, %f)\n", commandAngle[0], commandAngle[1], commandAngle[2], commandAngle[3], commandAngle[4], commandAngle[5]);
 
@@ -384,12 +384,12 @@ DWORD WINAPI threadFunction5(LPVOID lpParameter)
 	wsaerr = WSAStartup(wVersionRequested, &wsaData);
 	if (wsaerr != 0)
 	{
-		printf("Server: The Winsock dll not found!\n");
+		printf("(T5) Server: The Winsock dll not found!\n");
 		return 0;
 	}
 	if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2)
 	{
-		printf("Server: The dll do not support the Winsock version %u.%u!\n", LOBYTE(wsaData.wVersion), HIBYTE(wsaData.wVersion));
+		printf("(T5) Server: The dll do not support the Winsock version %u.%u!\n", LOBYTE(wsaData.wVersion), HIBYTE(wsaData.wVersion));
 		WSACleanup();
 		return 0;
 	}
@@ -398,7 +398,7 @@ DWORD WINAPI threadFunction5(LPVOID lpParameter)
 	// Check for errors to ensure that the socket is a valid socket.
 	if (m_socket == INVALID_SOCKET)
 	{
-		printf("Server: Error at socket(): %ld\n", WSAGetLastError());
+		printf("(T5) Server: Error at socket(): %ld\n", WSAGetLastError());
 		WSACleanup();
 		return 0;
 	}
@@ -411,15 +411,15 @@ DWORD WINAPI threadFunction5(LPVOID lpParameter)
 	service.sin_port = htons(5566);
 	if (bind(m_socket, (SOCKADDR*)&service, sizeof(service)) == SOCKET_ERROR)
 	{
-		printf("Server: bind() failed: %ld.\n", WSAGetLastError());
+		printf("(T5) Server: bind() failed: %ld.\n", WSAGetLastError());
 		closesocket(m_socket);
 		return 0;
 	}
 	if (listen(m_socket, 10) == SOCKET_ERROR)
-		printf("Server: listen(): Error listening on socket %ld.\n", WSAGetLastError());
+		printf("(T5) Server: listen(): Error listening on socket %ld.\n", WSAGetLastError());
 	SOCKET AcceptSocket;
-	printf("Server: Waiting for a client to connect...\n");
-	printf("***Hint: Server is ready...run your client program...***\n");
+	printf("(T5) Server: Waiting for a client to connect...\n");
+	printf("(T5) ***Hint: Server is ready...run your client program...***\n");
 
 	/*while (1)//一直等待直到client連線成功
 	{
@@ -447,7 +447,7 @@ DWORD WINAPI threadFunction5(LPVOID lpParameter)
 			if(AcceptSocket == SOCKET_ERROR)
 				continue;
 			else{  //Connect to Unity successfully
-				printf("Server: Client Connected!\n");
+				printf("(T5) Server: Client Connected!\n");
 				m_socket = AcceptSocket;
 				break;
 			}
