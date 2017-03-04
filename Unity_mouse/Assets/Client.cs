@@ -2,13 +2,12 @@
 using System.Collections;
 using System.Net.Sockets;
 using System;
-using System.Threading;
 
 public class Client : MonoBehaviour
 {
 	//*** 宣告變數: 跟連線有關的變數, Unity為Client
-	Client_Recv client_recv;
-	Client_Send client_send;
+	private ClientThread ct;
+	private bool isSend;
 
 	//*** 宣告變數: 為了使用jointsRotate.cs中的變數
 	GameObject Robot;
@@ -26,6 +25,7 @@ public class Client : MonoBehaviour
 	float[] theta_0 = new float[] { 0, 90, 0, 0, 0, 0 };      //VR robot的 initial theta(home)  //!!!??
 	float[] theta_user = new float[] { 0, 0, 0, 0, 0, 0 };    //theta_tar -> targetAngle(PC) 的相對角度(中繼站)
 
+
 	void Awake()
 	{
 		Robot = GameObject.Find("RV_2A");
@@ -40,41 +40,39 @@ public class Client : MonoBehaviour
 		joint5_a = GameObject.Find("Joint5_actual");
 		joint6_a = GameObject.Find("Joint6_actual");
 		endEff_a = GameObject.Find("end_effector_actual");
-		Socket_RS ();
+
 	}
 
 	private void Start()
 	{
-		Socket_RS ();  //建立 Receive & Send 的 Socket (thread*2)
+		/// 之後整合要移走: ON/OFF - line +開關條件
+		ct = new ClientThread(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp, "127.0.0.1", 5566);  //localhost
+		ct.StartConnect();
+		isSend = true;
 
 	}
 
 	private void Update()
 	{
-		//-------------------- Update 'actual angle' -------------------- /// W/out protect yet!
-		if (client_recv.recvMsg != null)
+		if (ct.receiveMessage != null)  //***** Update 'actual angle' *****  /// W/out protect yet!
 		{
-			string[] recv_msg = client_recv.recvMsg.Split (',');  //用逗號分割字串; using System;
-			//string[] recv_msg = ct.recvMsg.Split (new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);  //用逗號分割字串; using System;
-
-			Debug.Log ("client_recv.recvMsg:" + client_recv.recvMsg);
+			string[] recv_msg = ct.receiveMessage.Split (',');  //用逗號分割字串; using System;
+			//string[] recv_msg = ct.receiveMessage.Split (new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);  //用逗號分割字串; using System;
+			Debug.Log ("Recv raw:" + ct.receiveMessage);
 			if (recv_msg.Length > 6) {
 				for (int i = 0; i < 6; i++)
-					theta_tar_a [i] = -float.Parse (recv_msg [i]) + theta_0 [i];  //Convert: string -> float; 加負號(因為Unity axis差一個負號); 傳過來的值是與home的角度差
+					theta_tar_a [i] = -float.Parse (recv_msg [i]) + theta_0[i];  //Convert: string -> float
 			}
 			else {
-				Debug.Log ("client_recv.recvMsg ERROR: " + client_recv.recvMsg);
-				Debug.Log ("client_recv.recvMsg ERROR: recv_msg.Length = " + recv_msg.Length);
+				Debug.Log (" ![ERROR]! : recv_msg.Length = " + recv_msg.Length);
 			}
-			client_recv.recvMsg = null			;
-
-			Debug.Log ("recv_msg : " + recv_msg[0] + " // " + recv_msg[1] + " // " + recv_msg[2] + " // " + recv_msg[3] + " // " + recv_msg[4] + " // " + recv_msg[5] + " // ");
+			ct.receiveMessage = null;
 		}
 
-		//-------------------- Send 'target angle' to PC -------------------- // START
-		for (int i = 0; i < 6; i++)
-			theta_user [i] = -(Robot_jR.theta_tar [i] - theta_0 [i]);
-/*  //***** RV-2A 各軸角度'實際'範圍 *****
+		if (isSend == true) {    //***** Send 'target angle' to PC *****
+			for (int i = 0; i < 6; i++)
+				theta_user [i] = -(Robot_jR.theta_tar [i] - theta_0 [i]);
+/*
 	targetAngle[0] = 0;    //range: ( -159.93 ~ +159.97 )  ; bound: +- 150 deg
 	targetAngle[1] = 0;    //range: ( -45     ~ +93.71  )  ; bound: +- 40  deg
 	targetAngle[2] = 90;   //range: ( +50.09  ~ +169.89 )  ; bound: +- 35  deg
@@ -82,15 +80,13 @@ public class Client : MonoBehaviour
 	targetAngle[4] = 0;    //range: ( -119.97 ~ +119.9  )  ; bound: +- 115 deg
 	targetAngle[5] = 0;    //range: ( -199.88 ~ +200    )  ; bound: +- 190 deg
 */
-		string send_msg = theta_user [0].ToString ("f4") + "," + theta_user [1].ToString ("f4") + "," + theta_user [2].ToString ("f4") + "," + theta_user [3].ToString ("f4") + "," + theta_user [4].ToString ("f4") + "," + theta_user [5].ToString ("f4") + ",999.9999";
-		Debug.Log (send_msg);
-		//if((send_msg!=null)&&(client_send!=null))  
-		client_send.Send (send_msg);
-		//-------------------- Send 'target angle' to PC -------------------- // END
+			StartCoroutine (SendTargetAngle ());//延遲發送訊息
+		}
+		ct.Receive();
 
 
-
-		// -------------------- 旋轉與實際角度同步的 VR robot (actual) -------------------- // START
+		// -------------------------------------------------- //
+		//***** VR_robot_actual rotate *****
 		for (int i = 0; i < 6; i++)
 			dtheta_a [i] = theta_tar_a [i] - theta_now_a [i];
 
@@ -103,28 +99,28 @@ public class Client : MonoBehaviour
 
 		for (int i = 0; i < 6; i++)		//refresh: after rotate
 			theta_now_a [i] = theta_tar_a [i];
-		// -------------------- 旋轉與實際角度同步的 VR robot (actual) -------------------- // END
 
-		// -------------------- Debug.Log --------------------
 		/*Debug.Log ("~ theta_now_a = ( " + theta_now_a[0] + ", " + theta_now_a[1] + ", " + theta_now_a[2] + ", " + theta_now_a[3] + ", " + theta_now_a[4] + ", " + theta_now_a[5]+ ")\n");
 		Debug.Log ("~ theta_tar_a = ( " + theta_tar_a[0] + ", " + theta_tar_a[1] + ", " + theta_tar_a[2] + ", " + theta_tar_a[3] + ", " + theta_tar_a[4] + ", " + theta_tar_a[5]+ ")\n");
 		Debug.Log ("~~ theta_tar = ( " + Robot_jR.theta_tar[0] + ", " + Robot_jR.theta_tar[1] + ", " + Robot_jR.theta_tar[2] + ", " + Robot_jR.theta_tar[3] + ", " + Robot_jR.theta_tar[4] + ", " + Robot_jR.theta_tar[5]+ ")\n");
 		Debug.Log ("~ theta_user = ( " + theta_user[0] + ", " + theta_user[1] + ", " + theta_user[2] + ", " + theta_user[3] + ", " + theta_user[4] + ", " + theta_user[5]+ ")\n\n");*/
 	}
 
-	public void Socket_RS()  //Receive & Send 的 Socket Funciton
+	private IEnumerator SendTargetAngle()  //***** Send 'target angle' to PC:  Function ~
 	{
-		if (client_recv == null) 
-		{
-			client_recv = new Client_Recv ();  //用另一個class來處理連線問題 收資料專用client
-			new Thread (client_recv.Run).Start ();
-			//InvokeRepeating ("Recv_Process", 0, 0.01f);  //???
+		isSend = false;
+		yield return new WaitForSeconds(0.1F);
+
+		string send_msg = theta_user[0].ToString("f4") + "," + theta_user[1].ToString("f4") + "," + theta_user[2].ToString("f4") + "," + theta_user[3].ToString("f4") + ","+ theta_user[4].ToString("f4") + "," + theta_user[5].ToString("f4") + ",999.9999";
+		if (Robot_jR.inRange) {  //*** if(OutOfRange) don't send!
+			ct.Send (send_msg);
+			Debug.Log ("Send raw" + send_msg);
 		}
-		if (client_send == null) 
-		{
-			client_send = new Client_Send ();  //送資料專用client
-			new Thread (client_send.Run).Start ();
-		}
+		isSend = true;
 	}
 
+	private void OnApplicationQuit() //Sent to all game objects before the application is quit.
+	{
+		ct.StopConnect();  //Close Socket
+	}
 }

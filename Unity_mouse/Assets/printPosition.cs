@@ -12,6 +12,6 @@ public class printPosition : MonoBehaviour {
 	void Update () {
 		//transform.position = new Vector3(0, 0, 0);
 //		Debug.Log ( this.name + "  ("+ transform.position.x + ", " + transform.position.y + ", " + transform.position.z + ")");
-		Debug.Log (this.name + "\n" + transform.position.ToString () + " " + transform.right.ToString () + " " + transform.up.ToString () + " " + transform.forward.ToString ());
+		//Debug.Log (this.name + "\n" + transform.position.ToString () + " " + transform.right.ToString () + " " + transform.up.ToString () + " " + transform.forward.ToString ());
 	}
 }

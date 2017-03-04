@@ -240,6 +240,9 @@ void RobotDataRead()		// 讀寫機器手臂資料
 				homeAngle[4] = (j->j5)*180.0 / PI;
 				homeAngle[5] = (j->j6)*180.0 / PI;
 
+				printf("homeAngle: %.4f,%.4f,%.4f,%.4f,%.4f,%.4f,-777.7777", homeAngle[0], homeAngle[1], homeAngle[2], homeAngle[3], homeAngle[4], homeAngle[5]);
+		
+				
 				loop = 2;
 			}
 
