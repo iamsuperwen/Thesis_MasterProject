@@ -334,8 +334,12 @@ DWORD WINAPI threadFunction99(LPVOID lpParameter)
 
 	// ********** Recv from Unity: targetAngle (差值!) **********
 	bytesRecv = recv(m_socket, rBuffer, sizeof(rBuffer), 0);
-	if (bytesRecv == SOCKET_ERROR)
+	if (bytesRecv == SOCKET_ERROR){
 		printf("Server: recv() error %ld.\n", WSAGetLastError());
+		WaitForSingleObject(Mutex99, INFINITE);  //Mutex99 Lock!
+		sockErr99_Cnt++;
+		ReleaseMutex(Mutex99);  //ghMutex Release.
+	}
 	else if (rBuffer[0] != 'a')
 	{
 		//printf("Server: Received data is: %s\n", rBuffer);
@@ -348,12 +352,7 @@ DWORD WINAPI threadFunction99(LPVOID lpParameter)
 		for (int i = 0; i<6; i++)  //walk through other tokens
 		{
 			if (token == NULL) {
-				printf("recv() Angle ERROR!\n");
-				
-				WaitForSingleObject(Mutex99, INFINITE);  //Mutex99 Lock!
-				sockErr99_Cnt++;
-				ReleaseMutex(Mutex99);  //ghMutex Release.
-				
+				printf("recv() Angle ERROR!\n");				
 				break;
 			}
 			targetAngle[i] = atof(token) + homeAngle[i];  //initial angle + 角度差(from Unity, string -> float)
